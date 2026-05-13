@@ -5,6 +5,7 @@ import {
   useContext,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import { useChat as useAIChat } from "@ai-sdk/react";
 import { Message } from "ai";
@@ -37,19 +38,27 @@ export function ChatProvider({
     messages,
     input,
     handleInputChange,
-    handleSubmit,
+    handleSubmit: aiHandleSubmit,
     status,
   } = useAIChat({
     api: "/api/chat",
     initialMessages,
-    body: {
-      files: fileSystem.serialize(),
-      projectId,
-    },
     onToolCall: ({ toolCall }) => {
       handleToolCall(toolCall);
     },
   });
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      aiHandleSubmit(e, {
+        body: {
+          files: fileSystem.serialize(),
+          projectId,
+        },
+      });
+    },
+    [aiHandleSubmit, fileSystem, projectId]
+  );
 
   // Track anonymous work
   useEffect(() => {
